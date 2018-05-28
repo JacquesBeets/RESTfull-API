@@ -12,6 +12,7 @@ mongoose.connect('mongodb+srv://node-online-shop:'+ process.env.MONGO_PASS + '@n
 
 //Middleware
 app.use(morgan('dev'))
+app.use('/uploads', express.static('uploads'))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
