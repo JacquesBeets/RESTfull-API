@@ -7,8 +7,10 @@ const mongoose = require('mongoose')
 //Route Imports
 const ProductRoutes = require('./api/routes/products')
 const OrderRoutes = require('./api/routes/orders')
+const UserRoutes = require('./api/routes/user')
 
-mongoose.connect('mongodb+srv://node-online-shop:'+ process.env.MONGO_PASS + '@nodejs-online-shop-restapi-u0rmt.mongodb.net/test?retryWrites=true')
+mongoose.connect('mongodb+srv://node-online-shop:'+ process.env.MONGO_PASS + '@nodejs-online-shop-restapi-u0rmt.mongodb.net' + '/test?retryWrites=true', {autoIndex: false}
+)
 
 //Middleware
 app.use(morgan('dev'))
@@ -30,6 +32,7 @@ app.use((req, res, next) => {
 //Routes
 app.use('/products', ProductRoutes)
 app.use('/orders', OrderRoutes)
+app.use('/user', UserRoutes)
 
 app.use((req, res, next) => {
   const error = new Error('Request Not Found')
