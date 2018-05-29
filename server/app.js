@@ -9,6 +9,7 @@ const ProductRoutes = require('./api/routes/products')
 const OrderRoutes = require('./api/routes/orders')
 const UserRoutes = require('./api/routes/user')
 
+//Connect to MongoDB
 mongoose.connect('mongodb+srv://node-online-shop:'+ process.env.MONGO_PASS + '@nodejs-online-shop-restapi-u0rmt.mongodb.net' + '/test?retryWrites=true', {autoIndex: false}
 )
 
