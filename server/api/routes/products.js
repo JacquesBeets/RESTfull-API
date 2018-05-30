@@ -3,6 +3,7 @@ const router = express.Router()
 const mongoose = require('mongoose')
 const multer = require('multer')
 const checkAuth = require('../middleware/check-auth')
+const ProductsController = require('../controllers/products')
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb){
@@ -26,140 +27,15 @@ const upload = multer({storage: storage,
   fileFilter: fileFilter
 })
 
-const Product = require('../models/product')
 
+router.get('/', ProductsController.get_all_products)
 
-router.get('/', (req, res, next) => {
-Product.find()
-  .select('name price _id productImage')
-  .exec()
-  .then(docs => {
-    const response = {
-      count: docs.length,
-      products: docs.map(doc => {
-        return{
-          name: doc.name,
-          price: doc.price,
-          _id: doc._id,
-          productImage: doc.productImage,
-          request: {
-            type: 'GET',
-            url: 'http://localhost:3000/products/' + doc._id
-          }
-        }
-      })
-    }
-    if(docs.length > 0) {
-      res.status(200).json(response)
-    } else {
-      res.status(200).json({
-        message: 'We have no products to show. Please add some products first.'
-      })
-    }
+router.post('/', checkAuth, upload.single('productImage'), ProductsController.create_product)
 
-  })
-  .catch( err => {
-    console.log(err)
-    res.status(500).json({error: err})
-  })
-})
+router.get('/:productId', ProductsController.get_product_by_id)
 
-router.post('/', checkAuth, upload.single('productImage'), (req, res, next) => {
-  console.log(req.file)
-  const product = new Product({
-    _id: new mongoose.Types.ObjectId(),
-    name: req.body.name,
-    price: req.body.price,
-    productImage: req.file.path
-  })
-  product
-    .save()
-    .then(result => {
-     console.log(result)
-      res.status(201).json({
-        message: 'New Product Created!',
-        createdProduct: {
-          name: result.name,
-          price: result.price,
-          _id: result._id,
-          productImage: result.productImage,
-          request: {
-            type: 'GET',
-            url: 'http://localhost:3000/products/' + result._id
-          }
-        }
-      })
-    })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({
-      error: err
-    })
-  })
-})
+router.patch('/:productId', checkAuth, ProductsController.update_product)
 
-router.get('/:productId', (req, res, next) => {
-  const id = req.params.productId;
-  Product.findById(id)
-  .select('name price _id productImage')
-  .exec()
-  .then(doc => {
-    if (doc) {
-      res.status(200).json({
-        product: doc,
-        request: {
-          type: 'GET',
-          url: 'http://localhost:3000/products/'
-        }
-
-      })
-    } else {
-      res.status(404).json({message: 'No valid entry found for this product'})
-    }
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({error: err})
-  })
-})
-
-router.patch('/:productId', checkAuth, (req, res, next) => {
-  const id = req.params.productId
-  const updateOperation = {}
-  for(const ops of req.body) {
-    updateOperation[ops.propName] = ops.value
-  }
-  Product.update({_id: id}, {$set: updateOperation})
-  .exec()
-  .then(result => {
-    console.log('Product has been updated succesfully: ', result)
-    res.status(200).json({
-      message: 'Product has been updated succesfully.', 
-      request: {
-        type: 'GET',
-        url: 'http://localhost:3000/products/' + id
-      }
-    })
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({
-      error: err
-    })
-  })
-})
-
-router.delete('/:productId', checkAuth, (req, res, next) => {
-  const id = req.params.productId
-  Product.findOneAndRemove({_id: id})
-  .exec()
-  .then(result => {
-    res.status(200).json({message: `${result.name} has been removed successfully.`})
-  })
-  .catch(err => {
-    console.log(err)
-    res.status(500).json({error: err}, result)
-  })
-})
+router.delete('/:productId', checkAuth, ProductsController.delete_product)
 
 module.exports = router;
